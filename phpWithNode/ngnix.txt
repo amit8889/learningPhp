@@ -1,0 +1,30 @@
+server {
+    listen 80;
+    server_name http://89.116.134.132/test;
+    root /path/to/your/project;
+
+    # Specify default index file
+    index index.php index.html index.htm;
+
+    # Base URL handling (always serve index.php)
+    location = / {
+        try_files /index.php =404;  # Always try to serve index.php for base URL
+    }
+
+    # PHP file handling
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;  # Assuming PHP-FPM is running on port 9000
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Proxy all other requests to the Node.js server
+    location / {
+        proxy_pass http://127.0.0.1:3000;  # Node.js server running on port 3000
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
